@@ -88,16 +88,19 @@
     /* Flashcard grid */
     .flashcard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
       margin-top: 10px;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     /* Flashcard flip */
     .flashcard {
       perspective: 1000px;
-      height: 160px;
+      height: 150px;
       cursor: pointer;
+      width: 100%;
     }
     .flashcard-inner {
       position: relative;
