@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小四溫習指南 — Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
+      background: linear-gradient(135deg, #f5e6f8 0%, #e8f0fe 50%, #fce4ec 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    /* Header */
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(100,100,150,0.1);
+      margin-bottom: 20px;
+    }
+    header h1 { color: #5c6bc0; font-size: 1.8em; margin-bottom: 8px; }
+    header p { color: #888; font-size: 0.95em; }
+    
+    /* Grade & Subject Nav */
+    .nav-section {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(100,100,150,0.08);
+    }
+    .nav-section h3 { color: #5c6bc0; margin-bottom: 15px; font-size: 1em; }
+    
+    .subject-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .subject-tab {
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: 2px solid #ddd;
+      background: white;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .subject-tab:hover { border-color: #9575cd; color: #9575cd; }
+    .subject-tab.active { 
+      background: #9575cd; 
+      color: white; 
+      border-color: #9575cd;
+    }
+    
+    /* Lesson accordion */
+    .lesson-section { margin-top: 15px; }
+    .lesson-btn {
+      width: 100%;
+      padding: 12px 20px;
+      background: #e3f2fd;
+      border: 2px solid #90caf9;
+      border-radius: 12px;
+      font-size: 1em;
+      font-weight: 600;
+      color: #1565c0;
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+    .lesson-btn:hover { background: #bbdefb; }
+    .lesson-btn.open { background: #1565c0; color: white; border-color: #1565c0; }
+    
+    .lesson-content {
+      display: none;
+      padding: 15px 0;
+    }
+    .lesson-content.open { display: block; }
+    
+    /* Flashcard grid */
+    .flashcard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
+    }
+    
+    /* Flashcard flip */
+    .flashcard {
+      perspective: 1000px;
+      height: 160px;
+      cursor: pointer;
+    }
+    .flashcard-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s;
+      transform-style: preserve-3d;
+    }
+    .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+    .flashcard-front, .flashcard-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      box-shadow: 0 3px 12px rgba(100,100,150,0.15);
+    }
+    .flashcard-front {
+      background: white;
+      border: 2px solid #bbdefb;
+    }
+    .flashcard-back {
+      background: #ede7f6;
+      border: 2px solid #b39ddb;
+      transform: rotateY(180deg);
+      font-size: 0.9em;
+      color: #4a148c;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .flashcard-emoji {
+      font-size: 3em;
+      margin-bottom: 8px;
+    }
+    .flashcard-word {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: #333;
+      text-align: center;
+    }
+    .flip-hint {
+      font-size: 0.7em;
+      color: #aaa;
+      margin-top: 5px;
+    }
+    
+    /* Quiz section */
+    .quiz-section {
+      margin-top: 20px;
+    }
+    .quiz-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #7e57c2, #9575cd);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(126,87,194,0.3);
+      transition: all 0.2s;
+    }
+    .quiz-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(126,87,194,0.4); }
+    
+    /* Quiz modal */
+    .quiz-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .quiz-modal.open { display: flex; }
+    .quiz-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .quiz-box h3 { color: #5c6bc0; margin-bottom: 20px; font-size: 1.2em; }
+    .quiz-progress {
+      font-size: 0.85em;
+      color: #888;
+      margin-bottom: 15px;
+    }
+    .quiz-question {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-option {
+      padding: 12px 18px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1em;
+    }
+    .quiz-option:hover { border-color: #9575cd; background: #f3e5f5; }
+    .quiz-option.selected { border-color: #7e57c2; background: #ede7f6; font-weight: 500; }
+    .quiz-option.correct { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
+    .quiz-option.wrong { border-color: #f44336; background: #ffebee; color: #c62828; }
+    
+    .quiz-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .quiz-nav button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-next { background: #7e57c2; color: white; }
+    .btn-close { background: #e0e0e0; color: #666; }
+    
+    /* Fill-in */
+    .fill-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #90caf9;
+      border-radius: 12px;
+      font-size: 1em;
+      margin: 10px 0;
+    }
+    .fill-input:focus { outline: none; border-color: #1565c0; }
+    
+    /* Quiz result */
+    .quiz-result {
+      text-align: center;
+      padding: 20px;
+    }
+    .quiz-score {
+      font-size: 3em;
+      font-weight: 700;
+      color: #7e57c2;
+      margin: 15px 0;
+    }
+    .quiz-stars { font-size: 2em; }
+    
+    /* Idiom section */
+    .idiom-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
+    }
+    .idiom-card {
+      background: white;
+      border: 2px solid #ffcc80;
+      border-radius: 15px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(255,152,0,0.15);
+    }
+    .idiom-card .idiom-emoji { font-size: 2.5em; margin-bottom: 8px; }
+    .idiom-card .idiom-word { font-size: 1.1em; font-weight: 700; color: #e65100; margin-bottom: 5px; }
+    .idiom-card .idiom-meaning { font-size: 0.85em; color: #666; }
+    
+    /* Grammar section */
+    .grammar-box {
+      background: white;
+      border: 2px solid #a5d6a7;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+    .grammar-box h4 { color: #2e7d32; margin-bottom: 10px; }
+    .grammar-tag {
+      display: inline-block;
+      background: #c8e6c9;
+      color: #2e7d32;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      margin: 3px;
+    }
+    
+    /* Progress */
+    .progress-bar {
+      background: #e0e0e0;
+      border-radius: 10px;
+      height: 10px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #7e57c2, #f06292);
+      border-radius: 10px;
+      transition: width 0.5s;
+    }
+    .progress-text { font-size: 0.85em; color: #888; text-align: center; }
+    
+    /* Instruction */
+    .hint {
+      background: #fff8e1;
+      border: 2px solid #ffe082;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 15px;
+      font-size: 0.9em;
+      color: #f57f17;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .flashcard-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+      .flashcard { height: 130px; }
+      .flashcard-emoji { font-size: 2.2em; }
+      .flashcard-word { font-size: 1em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <h1>📚 小四SEN溫習指南</h1>
+      <p>開心學習，輕鬆溫習！</p>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-text" id="progressText">已完成：0 詞語</div>
+    </header>
+    
+    <!-- Subject Nav -->
+    <div class="nav-section">
+      <h3>📚 科目選擇</h3>
+      <div class="subject-tabs">
+        <button class="subject-tab active" onclick="showSubject('chinese')">📝 中文</button>
+        <button class="subject-tab" onclick="showSubject('english')">🌍 英文</button>
+      </div>
+    </div>
+    
+    <!-- ==================== CHINESE ==================== -->
+    <div id="chinese-section">
+      <!-- 詞語 -->
+      <div class="nav-section">
+        <h3>📝 詞語（點擊卡片翻轉查看意思）</h3>
+        <div class="hint">💡 提示：點擊卡片可以翻轉查看詞語意思</div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn open" onclick="toggleLesson(this, 'lesson5')">
+            📖 第5課：沒有牙齒的大老虎
+          </button>
+          <div class="lesson-content open" id="lesson5">
+            <div class="flashcard-grid" id="lesson5-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('lesson5')">
+                開始小測（第5課：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'lesson6')">
+            📖 第6課：畫鳥的獵人
+          </button>
+          <div class="lesson-content" id="lesson6">
+            <div class="flashcard-grid" id="lesson6-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('lesson6')">
+                開始小測（第6課：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'lesson7')">
+            📖 第7課：第一次採訪
+          </button>
+          <div class="lesson-content" id="lesson7">
+            <div class="flashcard-grid" id="lesson7-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('lesson7')">
+                開始小測（第7課：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'lesson8')">
+            📖 第8課：學校裡的隱形人
+          </button>
+          <div class="lesson-content" id="lesson8">
+            <div class="flashcard-grid" id="lesson8-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('lesson8')">
+                開始小測（第8課：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'lesson9')">
+            📖 第9課：龍船比賽
+          </button>
+          <div class="lesson-content" id="lesson9">
+            <div class="flashcard-grid" id="lesson9-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('lesson9')">
+                開始小測（第9課：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'lesson10')">
+            📖 第10課：中秋觀燈
+          </button>
+          <div class="lesson-content" id="lesson10">
+            <div class="flashcard-grid" id="lesson10-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('lesson10')">
+                開始小測（第10課：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 成語 -->
+      <div class="nav-section">
+        <h3>🏮 成語</h3>
+        <div class="idiom-grid" id="idiom-grid"></div>
+        <div class="quiz-section" style="margin-top:15px">
+          <button class="quiz-btn" style="background:linear-gradient(135deg,#ff9800,#ffa726)" onclick="startQuiz('idiom')">
+            開始成語小測（5MC + 5填充）
+          </button>
+        </div>
+      </div>
+      
+      <!-- 句式 -->
+      <div class="nav-section">
+        <h3>✍️ 句式運用</h3>
+        <div class="grammar-box">
+          <h4>1. 轉折句：「儘管……但……」</h4>
+          <p style="margin:8px 0; color:#555; font-size:0.95em;">
+            結構：<strong>儘管</strong> + 句子A，<strong>但</strong> + 句子B<br>
+            例子：<em>儘管老人的語氣平靜，但他答非所問的話語，卻使我心生感觸。</em>
+          </p>
+          <span class="grammar-tag">表示轉折</span>
+          <span class="grammar-tag">讓步關係</span>
+        </div>
+        <div class="grammar-box">
+          <h4>2. 肯定句 vs 否定句</h4>
+          <p style="margin:8px 0; color:#555; font-size:0.95em;">
+            <strong>肯定句：</strong>在學校裏，我是個隱形人。<br>
+            <strong>否定句：</strong>我並非趕去學習奧數或聲樂。
+          </p>
+          <span class="grammar-tag">肯定句：正常陳述</span>
+          <span class="grammar-tag">否定句：加「不」/「非」</span>
+        </div>
+        <div class="grammar-box">
+          <h4>3. 交替句：「……一會兒……一會兒……」</h4>
+          <p style="margin:8px 0; color:#555; font-size:0.95em;">
+            例子：<em>龍船比賽十分激烈，一會兒是這邊的一條領先，一會兒是那邊的一條趕上來。</em>
+          </p>
+          <span class="grammar-tag">表示交替</span>
+          <span class="grammar-tag">動作/狀態切換</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ==================== ENGLISH ==================== -->
+    <div id="english-section" style="display:none">
+      <!-- 詞彙 -->
+      <div class="nav-section">
+        <h3>🌍 英文詞彙</h3>
+        <div class="lesson-section">
+          <button class="lesson-btn open" onclick="toggleLesson(this, 'eng-lesson1')">
+            📍 Finding the way（問路）
+          </button>
+          <div class="lesson-content open" id="eng-lesson1">
+            <div class="flashcard-grid" id="eng-lesson1-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('eng-lesson1')">
+                開始小測（Finding the way：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'eng-lesson2')">
+            🍎 My eating habits（飲食習慣）
+          </button>
+          <div class="lesson-content" id="eng-lesson2">
+            <div class="flashcard-grid" id="eng-lesson2-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('eng-lesson2')">
+                開始小測（My eating habits：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'eng-lesson3')">
+            ⚖️ A balanced diet（均衡飲食）
+          </button>
+          <div class="lesson-content" id="eng-lesson3">
+            <div class="flashcard-grid" id="eng-lesson3-grid"></div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('eng-lesson3')">
+                開始小測（A balanced diet：5MC + 5填充）
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 文法 -->
+      <div class="nav-section">
+        <h3>📖 英文文法</h3>
+        <div class="grammar-box">
+          <h4>❓ 疑問詞（Question Words）</h4>
+          <span class="grammar-tag">What（什麼）</span>
+          <span class="grammar-tag">How（如何）</span>
+          <span class="grammar-tag">Where（哪裡）</span>
+          <span class="grammar-tag">When（何時）</span>
+          <span class="grammar-tag">Why（為什麼）</span>
+          <span class="grammar-tag">Who（誰）</span>
+          <span class="grammar-tag">How much（多少）</span>
+          <span class="grammar-tag">How many（多少）</span>
+        </div>
+        <div class="grammar-box">
+          <h4>📍 介詞短語（Prepositions）</h4>
+          <span class="grammar-tag">next to（旁邊）</span>
+          <span class="grammar-tag">opposite to（對面）</span>
+          <span class="grammar-tag">in front of（前面）</span>
+          <span class="grammar-tag">behind（後面）</span>
+          <span class="grammar-tag">turn left（左轉）</span>
+          <span class="grammar-tag">turn right（右轉）</span>
+        </div>
+        <div class="grammar-box">
+          <h4>🔢 限定詞（Determiners）</h4>
+          <span class="grammar-tag">a few（一些 — 可數）</span>
+          <span class="grammar-tag">a little（一點 — 不可數）</span>
+          <span class="grammar-tag">a lot of（很多）</span>
+          <div style="margin-top:10px; font-size:0.9em; color:#555;">
+            例：I have <strong>a few</strong> apples.（可數）<br>
+            例：I have <strong>a little</strong> milk.（不可數）
+          </div>
+        </div>
+        <div class="quiz-section">
+          <button class="quiz-btn" style="background:linear-gradient(135deg,#4caf50,#66bb6a)" onclick="startQuiz('eng-grammar')">
+            開始文法小測
+          </button>
+        </div>
+      </div>
+    </div>
+    
+  </div><!-- /container -->
+  
+  <!-- Quiz Modal -->
+  <div class="quiz-modal" id="quizModal">
+    <div class="quiz-box" id="quizBox">
+      <!-- Quiz content filled by JS -->
+    </div>
+  </div>
+
+<script>
+// ====== DATA ======
+const chineseWords = {
+  lesson5: [
+    { word: '感激', emoji: '🙏', meaning: '心中感激，對別人的幫助感到開心和謝謝' },
+    { word: '相信', emoji: '🤝', meaning: '信任某人或某事，覺得是真实的' },
+    { word: '尊敬', emoji: '👴', meaning: '對年長或有能力的人表示尊重' },
+    { word: '吹牛', emoji: '😤', meaning: '說大話，吹噓自己的能力或經歷' },
+    { word: '苦口婆心', emoji: '💬', meaning: '耐心地一再勸告，雖然費力但很用心' },
+    { word: '貪吃', emoji: '🍖', meaning: '很喜歡吃東西，尤其是美食' },
+    { word: '臉腫', emoji: '😣', meaning: '臉部腫脹，形容受傷或被打了' }
+  ],
+  lesson6: [
+    { word: '沉思', emoji: '🤔', meaning: '認真思考，靜靜地想事情' },
+    { word: '把握', emoji: '✋', meaning: '抓住機會，掌握機會' },
+    { word: '懂得', emoji: '💡', meaning: '明白、了解某件事' },
+    { word: '感動', emoji: '😢', meaning: '被事情觸動了內心，感到温暖' },
+    { word: '擔心', emoji: '😟', meaning: '對人或事感到忧虑、不安' },
+    { word: '嚴肅', emoji: '😐', meaning: '表情或態度很正經、不開玩笑' },
+    { word: '吞吞吐吐', emoji: '🗣️', meaning: '說話時斷斷續續，不流暢' }
+  ],
+  lesson7: [
+    { word: '孤獨', emoji: '😔', meaning: '一個人，沒有朋友陪伴，感到寂寞' },
+    { word: '讚許', emoji: '👍', meaning: '表揚、稱讚別人的好表現' },
+    { word: '呆滯', emoji: '😶', meaning: '眼神或表情呆板，沒有神采' },
+    { word: '憐憫', emoji: '💔', meaning: '對別人的不幸感到同情' },
+    { word: '繪聲繪色', emoji: '🎨', meaning: '形容說話或描寫很生動、精彩' },
+    { word: '欣喜', emoji: '😊', meaning: '非常高興、開心' },
+    { word: '昏昏欲睡', emoji: '😪', meaning: '很睏，想睡覺的樣子' }
+  ],
+  lesson8: [
+    { word: '遺忘', emoji: '❓', meaning: '忘記了某件事' },
+    { word: '肩負', emoji: '💪', meaning: '承擔起責任' },
+    { word: '培育', emoji: '🌱', meaning: '培養、教育，讓人或事物成長' },
+    { word: '堅毅不屈', emoji: '🦸', meaning: '面對困難不退縮，很堅強' },
+    { word: '慌張', emoji: '😰', meaning: '緊張、急急忙忙的樣子' },
+    { word: '投訴', emoji: '📢', meaning: '向有關方面表達不滿' },
+    { word: '輕飄飄', emoji: '🎈', meaning: '很輕的感覺，像氣球一樣飘浮' }
+  ],
+  lesson9: [
+    { word: '痛心', emoji: '💔', meaning: '內心感到很悲傷、難過' },
+    { word: '疏遠', emoji: '🚶', meaning: '關係變淡，減少來往' },
+    { word: '激發', emoji: '⚡', meaning: '引起興趣或熱情' },
+    { word: '忠誠', emoji: '🐕', meaning: '對人或團體非常忠心' },
+    { word: '神氣活現', emoji: '🦚', meaning: '很神氣的樣子，得意洋洋' },
+    { word: '紀念', emoji: '🕯️', meaning: '懷念某人或某事' },
+    { word: '五色繽紛', emoji: '🌈', meaning: '顏色很多很美，色彩豐富' }
+  ],
+  lesson10: [
+    { word: '三五成群', emoji: '👥', meaning: '幾個人在一起' },
+    { word: '遙望', emoji: '👀', meaning: '從遠處看' },
+    { word: '展開', emoji: '🪢', meaning: '打開、展開' },
+    { word: '燈火通明', emoji: '🏮', meaning: '很多燈亮着，非常光亮' },
+    { word: '巡遊', emoji: '🚢', meaning: '在各地遊覽、走動' },
+    { word: '擁抱', emoji: '🤗', meaning: '抱抱，表示親近' },
+    { word: '飄飄欲仙', emoji: '☁️', meaning: '感覺輕飄飄的，像神仙一樣' }
+  ]
+};
+
+const idioms = [
+  { word: '束手無策', emoji: '👐', meaning: '雙手被綁，沒有辦法解決問題' },
+  { word: '提心吊膽', emoji: '💓', meaning: '很害怕、擔心' },
+  { word: '推心置腹', emoji: '❤️', meaning: '真心對待，誠懇待人' },
+  { word: '目瞪口呆', emoji: '😲', meaning: '非常驚訝，嘴巴張開合不上' },
+  { word: '促膝談心', emoji: '💬', meaning: '坐在一起說心事' },
+  { word: '吐氣揚眉', emoji: '😤', meaning: '出了口氣，感到得意' },
+  { word: '迫不及待', emoji: '⏰', meaning: '很急，馬上要做' },
+  { word: '愛不釋手', emoji: '🤲', meaning: '很喜歡，捧着不肯放下' },
+  { word: '驚惶失措', emoji: '😱', meaning: '太害怕，不知怎麼辦' },
+  { word: '垂頭喪氣', emoji: '😞', meaning: '很失望，沒有精神的樣子' }
+];
+
+const engWords = {
+  'eng-lesson1': [
+    { word: 'post office', emoji: '🏤', meaning: '郵政局 — 寄信、寄包裹的地方' },
+    { word: 'bank', emoji: '🏦', meaning: '銀行 — 存錢、取錢的地方' },
+    { word: 'bakery', emoji: '🍞', meaning: '麵包店 — 買麵包、蛋糕的地方' },
+    { word: 'clinic', emoji: '🏥', meaning: '診所 — 看醫生的地方' },
+    { word: 'supermarket', emoji: '🛒', meaning: '超級市場 — 買雜貨的地方' },
+    { word: 'hospital', emoji: '🏨', meaning: '醫院 — 治療大病的地方' },
+    { word: 'train station', emoji: '🚉', meaning: '火車站 — 搭火車的地方' },
+    { word: 'department store', emoji: '🏬', meaning: '百貨公司 — 賣很多東西的大商場' },
+    { word: 'convenience store', emoji: '🏪', meaning: '便利店 — 24小時開的小商店' },
+    { word: 'sports centre', emoji: '⚽', meaning: '體育中心 — 做運動的地方' }
+  ],
+  'eng-lesson2': [
+    { word: 'steak', emoji: '🥩', meaning: '牛排 — 一種肉類食物' },
+    { word: 'pork', emoji: '🥓', meaning: '豬肉 — 從豬來的肉' },
+    { word: 'beef', emoji: '🥩', meaning: '牛肉 — 從牛來的肉' },
+    { word: 'chicken', emoji: '🍗', meaning: '雞肉 — 從雞來的肉' },
+    { word: 'grapes', emoji: '🍇', meaning: '葡萄 — 一種水果' },
+    { word: 'cherries', emoji: '🍒', meaning: '車厘子 — 一種甜的水果' },
+    { word: 'lychees', emoji: '🍈', meaning: '荔枝 — 一種香港常見的水果' },
+    { word: 'spaghetti', emoji: '🍝', meaning: '意大利粉 — 一種麵食' },
+    { word: 'carrots', emoji: '🥕', meaning: '紅蘿蔔 — 一種蔬菜' },
+    { word: 'potatoes', emoji: '🥔', meaning: '薯仔 — 一種蔬菜' },
+    { word: 'lettuce', emoji: '🥬', meaning: '生菜 — 一種蔬菜' },
+    { word: 'broccoli', emoji: '🥦', meaning: '西蘭花 — 一種健康蔬菜' }
+  ],
+  'eng-lesson3': [
+    { word: 'dairy products', emoji: '🥛', meaning: '乳製品 — 牛奶、芝士、乳酪' },
+    { word: 'give us energy', emoji: '⚡', meaning: '提供能量 — 讓我們有力氣' },
+    { word: 'strong bones', emoji: '🦴', meaning: '強壯骨骼 — 令骨頭健康' },
+    { word: 'keep us healthy', emoji: '💚', meaning: '保持健康 — 令身體好' },
+    { word: 'heart disease', emoji: '❤️‍🔥', meaning: '心臟病 — 心臟出現問題' },
+    { word: 'skin problems', emoji: '🤕', meaning: '皮膚問題 — 皮膚過敏或出疹' },
+    { word: 'make us fat', emoji: '⚖️', meaning: '令人肥胖 — 體重增加' },
+    { word: 'a few', emoji: '✌️', meaning: '一些（可數）— 例：a few apples' },
+    { word: 'a little', emoji: '💧', meaning: '一點（不可數）— 例：a little milk' },
+    { word: 'a lot of', emoji: '🎊', meaning: '很多（兩者皆可）— 例：a lot of food' }
+  ]
+};
+
+// ====== QUIZ DATA ======
+const quizData = {
+  lesson5: {
+    mc: [
+      { q: '「我內心很開心，謝謝你的幫助」，這個意思可以用哪個詞語表達？', options: ['感激', '吹牛', '貪吃', '臉腫'], answer: 0 },
+      { q: '「耐心地一再勸告」，這個意思可以用哪個詞語表達？', options: ['苦口婆心', '相信', '尊敬', '相信'], answer: 0 },
+      { q: '「對年長的人表示尊重」，這個意思可以用哪個詞語表達？', options: ['感激', '尊敬', '相信', '把握'], answer: 1 },
+      { q: '「說大話」，這個意思可以用哪個詞語表達？', options: ['吹牛', '貪吃', '沉吐', '臉腫'], answer: 0 },
+      { q: '「很喜歡吃東西」，這個意思可以用哪個詞語表達？', options: ['貪吃', '感激', '相信', '尊敬'], answer: 0 }
+    ],
+    fill: [
+      { q: '雖然被誤會了，但我仍然心中_____（感激/吹牛）他的好意。', answer: '感激' },
+      { q: '爺爺_____地勸告我不要遲到，我真的感到很溫暖。（苦口婆心）', answer: '苦口婆心' },
+      { q: '他一直_____自己的能力，結果大家都知道真相了。（吹牛）', answer: '吹牛' },
+      { q: '同學們都很_____老師，因為老師教得很好。（尊敬）', answer: '尊敬' },
+      { q: '看到美味的蛋糕，我忍不住變得很_____。（貪吃）', answer: '貪吃' }
+    ]
+  },
+  lesson6: {
+    mc: [
+      { q: '「認真思考，靜靜地想事情」，這個意思可以用哪個詞語表達？', options: ['沉思', '感動', '擔心', '把握'], answer: 0 },
+      { q: '「抓住機會」，這個意思可以用哪個詞語表達？', options: ['把握', '懂得', '嚴肅', '吞吞吐吐'], answer: 0 },
+      { q: '「明白、了解某件事」，這個意思可以用哪個詞語表達？', options: ['懂得', '沉思', '擔心', '感動'], answer: 0 },
+      { q: '「被事情觸動了內心」，這個意思可以用哪個詞語表達？', options: ['感動', '擔心', '把握', '嚴肅'], answer: 0 },
+      { q: '「說話時斷斷續續，不流暢」，這個意思可以用哪個詞語表達？', options: ['吞吞吐吐', '沉思', '感動', '懂得'], answer: 0 }
+    ],
+    fill: [
+      { q: '聽完故事後，我一直在_____。（沉思）', answer: '沉思' },
+      { q: '老師說：「同學們要_____每一個機會！」', answer: '把握' },
+      { q: '我終於_____了這篇文章的意思。（懂得）', answer: '懂得' },
+      { q: '電影太感人了，我忍不住_____了。（感動）', answer: '感動' },
+      { q: '當被問到答案時，他變得緊張，說話_____。（吞吞吐吐）', answer: '吞吞吐吐' }
+    ]
+  },
+  idioms: {
+    mc: [
+      { q: '「雙手被綁，沒有辦法解決問題」是哪個成語的意思？', options: ['束手無策', '目瞪口呆', '提心吊膽', '驚惶失措'], answer: 0 },
+      { q: '「很害怕、擔心」是哪個成語的意思？', options: ['提心吊膽', '垂頭喪氣', '愛不釋手', '迫不及待'], answer: 0 },
+      { q: '「真心對待，誠懇待人」是哪個成語的意思？', options: ['推心置腹', '促膝談心', '吐氣揚眉', '迫不及待'], answer: 0 },
+      { q: '「非常驚訝，嘴巴張開合不上」是哪個成語的意思？', options: ['目瞪口呆', '驚惶失措', '垂頭喪氣', '迫不及待'], answer: 0 },
+      { q: '「很喜歡，捧着不肯放下」是哪個成語的意思？', options: ['愛不釋手', '推心置腹', '促膝談心', '提心吊膽'], answer: 0 }
+    ],
+    fill: [
+      { q: '遇到這麼難的題目，我真的_____。（束手無策）', answer: '束手無策' },
+      { q: '聽到壞消息，他嚇得_____。（目瞪口呆）', answer: '目瞪口呆' },
+      { q: '我們_____說了一個晚上。（促膝談心）', answer: '促膝談心' },
+      { q: '終於得獎了，他_____！（吐氣揚眉）', answer: '吐氣揚眉' },
+      { q: '拿到新手機，我真的很喜歡，_____。（愛不釋手）', answer: '愛不釋手' }
+    ]
+  },
+  'eng-lesson1': {
+    mc: [
+      { q: '「我要寄信，應該去哪裡？」', options: ['post office', 'bank', 'bakery', 'clinic'], answer: 0 },
+      { q: '「我要看病，應該去哪裡？」', options: ['clinic', 'bank', 'bakery', 'post office'], answer: 0 },
+      { q: '「我要買麵包，應該去哪裡？」', options: ['bakery', 'supermarket', 'hospital', 'bank'], answer: 0 },
+      { q: '「我要存錢，應該去哪裡？」', options: ['bank', 'post office', 'clinic', 'bakery'], answer: 0 },
+      { q: '「我要搭火車，應該去哪裡？」', options: ['train station', 'sports centre', 'convenience store', 'department store'], answer: 0 }
+    ],
+    fill: [
+      { q: 'I go to the _____ to buy milk and bread.（supermarket / bank）', answer: 'supermarket' },
+      { q: 'There is a _____ near my home. I can send letters there.（post office）', answer: 'post office' },
+      { q: 'My mum goes to the _____ to get some money.（bank）', answer: 'bank' },
+      { q: 'The _____ has many different shops inside.（department store）', answer: 'department store' },
+      { q: 'There is a 7-_____ near my school.（Eleven）', answer: 'Eleven' }
+    ]
+  },
+  'eng-grammar': {
+    mc: [
+      { q: '「_____ is your name?」— 你叫什麼名字？', options: ['What', 'Where', 'When', 'Why'], answer: 0 },
+      { q: '「_____ do you live?」— 你住哪裡？', options: ['Where', 'What', 'Who', 'How'], answer: 0 },
+      { q: '「_____ do you study English?」— 你為什麼學英文？', options: ['Why', 'When', 'How', 'Who'], answer: 0 },
+      { q: 'I have _____ apples.（a few / a little）', options: ['a few', 'a little', 'a lot', 'a lot of'], answer: 0 },
+      { q: 'I have _____ milk.（a little / a few）', options: ['a little', 'a few', 'a lot', 'a few of'], answer: 0 }
+    ],
+    fill: [
+      { q: '_____ is your favourite food?（What）', answer: 'What' },
+      { q: 'There are a _____ books on the table.（few）', answer: 'few' },
+      { q: 'I drink a _____ milk every morning.（little）', answer: 'little' },
+      { q: 'The library is next _____ the school.（to）', answer: 'to' },
+      { q: 'Turn left at the _____ shop.（bakery）', answer: 'bakery' }
+    ]
+  }
+};
+
+// ====== RENDER ======
+function renderFlashcards(id, data) {
+  const grid = document.getElementById(id);
+  if (!grid) return;
+  grid.innerHTML = data.map(item => `
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard-inner">
+        <div class="flashcard-front">
+          <div class="flashcard-emoji">${item.emoji}</div>
+          <div class="flashcard-word">${item.word}</div>
+          <div class="flip-hint">點擊翻轉</div>
+        </div>
+        <div class="flashcard-back">
+          <div style="font-size:1.5em;margin-bottom:8px">${item.emoji}</div>
+          <div>${item.meaning}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderIdioms() {
+  const grid = document.getElementById('idiom-grid');
+  grid.innerHTML = idioms.map(item => `
+    <div class="idiom-card">
+      <div class="idiom-emoji">${item.emoji}</div>
+      <div class="idiom-word">${item.word}</div>
+      <div class="idiom-meaning">${item.meaning}</div>
+    </div>
+  `).join('');
+}
+
+// Init Chinese flashcards
+Object.entries(chineseWords).forEach(([lesson, words]) => {
+  renderFlashcards(lesson + '-grid', words);
+});
+renderIdioms();
+
+// Init English flashcards
+Object.entries(engWords).forEach(([lesson, words]) => {
+  renderFlashcards(lesson + '-grid', words);
+});
+
+// ====== NAVIGATION ======
+function showSubject(subject) {
+  document.querySelectorAll('.subject-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('chinese-section').style.display = subject === 'chinese' ? 'block' : 'none';
+  document.getElementById('english-section').style.display = subject === 'english' ? 'block' : 'none';
+}
+
+function toggleLesson(btn, lessonId) {
+  const content = document.getElementById(lessonId);
+  const isOpen = content.classList.contains('open');
+  
+  // Close all
+  document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.lesson-content').forEach(c => c.classList.remove('open'));
+  
+  // Toggle this one
+  if (!isOpen) {
+    btn.classList.add('open');
+    content.classList.add('open');
+  }
+}
+
+// ====== QUIZ ======
+let currentQuiz = null;
+let currentQ = 0;
+let answers = [];
+let quizType = ''; // 'mc' or 'fill'
+
+function startQuiz(lessonId) {
+  const data = quizData[lessonId];
+  if (!data) {
+    alert('小測內容準備中，敬請期待！');
+    return;
+  }
+  quizType = lessonId.startsWith('eng') ? 'eng' : 'chinese';
+  currentQuiz = data;
+  currentQ = 0;
+  answers = [];
+  renderQuestion();
+  document.getElementById('quizModal').classList.add('open');
+}
+
+function renderQuestion() {
+  const box = document.getElementById('quizBox');
+  const isMC = Math.random() > 0.5 || currentQ < 5;
+  
+  if (currentQ < currentQuiz.mc.length) {
+    const q = currentQuiz.mc[currentQ];
+    box.innerHTML = `
+      <h3>📝 選擇題</h3>
+      <div class="quiz-progress">第 ${currentQ + 1} / ${currentQuiz.mc.length + currentQuiz.fill.length} 題</div>
+      <div class="quiz-question">${q.q}</div>
+      <div class="quiz-options">
+        ${q.options.map((opt, i) => `
+          <div class="quiz-option" onclick="selectMC(this, ${i})">${opt}</div>
+        `).join('')}
+      </div>
+      <div class="quiz-nav">
+        <button class="btn-close" onclick="closeQuiz()">取消</button>
+        <button class="btn-next" onclick="nextQuestion()">下一題</button>
+      </div>
+    `;
+  } else {
+    const fillIdx = currentQ - currentQuiz.mc.length;
+    const q = currentQuiz.fill[fillIdx];
+    box.innerHTML = `
+      <h3>✍️ 填充題</h3>
+      <div class="quiz-progress">第 ${currentQ + 1} / ${currentQuiz.mc.length + currentQuiz.fill.length} 題</div>
+      <div class="quiz-question">${q.q}</div>
+      <input type="text" class="fill-input" id="fillAnswer" placeholder="請輸入答案...">
+      <div class="quiz-nav">
+        <button class="btn-close" onclick="closeQuiz()">取消</button>
+        <button class="btn-next" onclick="checkFill()">確定</button>
+      </div>
+    `;
+  }
+}
+
+function selectMC(el, idx) {
+  document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[currentQ] = { type: 'mc', selected: idx };
+}
+
+function checkFill() {
+  const val = document.getElementById('fillAnswer').value.trim();
+  answers[currentQ] = { type: 'fill', value: val };
+  nextQuestion();
+}
+
+function nextQuestion() {
+  if (answers[currentQ] === undefined) {
+    alert('請選擇或輸入答案！');
+    return;
+  }
+  const total = currentQuiz.mc.length + currentQuiz.fill.length;
+  if (currentQ < total - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  let score = 0;
+  const total = currentQuiz.mc.length + currentQuiz.fill.length;
+  
+  // MC
+  currentQuiz.mc.forEach((q, i) => {
+    if (answers[i] && answers[i].selected === q.answer) score++;
+  });
+  // Fill
+  currentQuiz.fill.forEach((q, i) => {
+    const idx = currentQuiz.mc.length + i;
+    if (answers[idx] && answers[idx].value === q.answer) score++;
+  });
+  
+  const pct = Math.round(score / total * 100);
+  const stars = pct >= 80 ? '⭐⭐⭐' : pct >= 50 ? '⭐⭐' : '⭐';
+  
+  document.getElementById('quizBox').innerHTML = `
+    <div class="quiz-result">
+      <h3>🎉 小測完成！</h3>
+      <div class="quiz-score">${score} / ${total}</div>
+      <div class="quiz-stars">${stars}</div>
+      <p style="color:#666; margin-top:15px">${pct >= 80 ? '太棒了！' : pct >= 50 ? '做得不錯！' : '繼續加油！'}</p>
+      <div class="quiz-nav" style="margin-top:25px">
+        <button class="btn-close" onclick="closeQuiz()">返回</button>
+        <button class="btn-next" onclick="closeQuiz()">再試一次</button>
+      </div>
+    </div>
+  `;
+}
+
+function closeQuiz() {
+  document.getElementById('quizModal').classList.remove('open');
+}
+
+// ====== PROGRESS (simple) ======
+let flippedCount = 0;
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.flashcard')) {
+    flippedCount++;
+    const total = Object.values(chineseWords).flat().length + idioms.length + 
+                  Object.values(engWords).flat().length;
+    const pct = Math.min(Math.round(flippedCount / total * 100), 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = `已完成：${flippedCount} 張卡片`;
+  }
+});
+</script>
+</body>
+</html>
