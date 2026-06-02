@@ -330,6 +330,52 @@
       .flashcard-emoji { font-size: 2.2em; }
       .flashcard-word { font-size: 1em; }
     }
+    
+    /* ====== MATH CONCEPT STYLES ====== */
+    .bar-chart-demo {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      background: #f8f4ff;
+      border-radius: 16px;
+      margin: 15px 0;
+      min-height: 150px;
+    }
+    .bar-chart-demo .bar {
+      width: 60px;
+      background: linear-gradient(180deg, #ce93d8 0%, #ab47bc 100%);
+      border-radius: 8px 8px 0 0;
+      text-align: center;
+      color: white;
+      font-size: 0.85em;
+      padding-top: 8px;
+      transition: transform 0.2s;
+    }
+    .bar-chart-demo .bar:hover {
+      transform: scale(1.05);
+    }
+    .concept-row {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+    }
+    .concept-box {
+      flex: 1;
+      background: #f8f4ff;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .concept-box h5 {
+      margin: 0 0 10px 0;
+      color: #7b1fa2;
+    }
+    .concept-box p {
+      margin: 5px 0;
+      font-size: 0.95em;
+    }
   </style>
 </head>
 <body>
@@ -351,6 +397,7 @@
       <div class="subject-tabs">
         <button class="subject-tab active" onclick="showSubject('chinese')">📝 中文</button>
         <button class="subject-tab" onclick="showSubject('english')">🌍 英文</button>
+        <button class="subject-tab" onclick="showSubject('math')">🔢 數學</button>
       </div>
     </div>
     
@@ -575,6 +622,99 @@
             開始文法小測
           </button>
         </div>
+      </div>
+    </div>
+    
+    <!-- ==================== MATH ==================== -->
+    <div id="math-section" style="display:none">
+      <div class="nav-section">
+        <h3>🔢 棒形圖（單元六）</h3>
+        <div class="hint">💡 提示：棒形圖可以一眼睇清不同類別的數據大小</div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn open" onclick="toggleLesson(this, 'math-lesson1')">
+            📊 棒形圖（一）
+          </button>
+          <div class="lesson-content open" id="math-lesson1">
+            <div class="concept-card">
+              <h4>📚 認識棒形圖</h4>
+              <div class="bar-chart-demo">
+                <div class="bar" style="height: 80px"><span>蘋果<br>80</span></div>
+                <div class="bar" style="height: 60px"><span>香蕉<br>60</span></div>
+                <div class="bar" style="height: 100px"><span>橙<br>100</span></div>
+              </div>
+              <p>棒形圖用棒的高低嚟表示數據大小</p>
+              <ul>
+                <li>📌 <strong>標題</strong>：告訴你棒形圖講乜</li>
+                <li>📌 <strong>縦軸</strong>：顯示數量（每格代表幾多）</li>
+                <li>📌 <strong>橫軸</strong>：顯示不同類別的名稱</li>
+              </ul>
+            </div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('math-lesson1')">
+                開始小測（棒形圖一：10MC + 10填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'math-lesson2')">
+            📊 棒形圖（二）
+          </button>
+          <div class="lesson-content" id="math-lesson2">
+            <div class="concept-card">
+              <h4>📚 闡釋棒形圖</h4>
+              <div class="bar-chart-demo">
+                <div class="bar" style="height: 50px"><span>蘋果<br>50</span></div>
+                <div class="bar" style="height: 30px"><span>香蕉<br>30</span></div>
+              </div>
+              <p>學會回答棒形圖嘅問題：</p>
+              <ul>
+                <li>🔢 <strong>邊個最多/最少？</strong> — 搵最高/最矮嘅棒</li>
+                <li>➖ <strong>A比B多幾多？</strong> — 用減法計差異</li>
+                <li>➕ <strong>全部加埋幾多？</strong> — 把所有數加埋</li>
+              </ul>
+            </div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('math-lesson2')">
+                開始小測（棒形圖二：10MC + 10填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="lesson-section">
+          <button class="lesson-btn" onclick="toggleLesson(this, 'math-lesson3')">
+            📊 棒形圖（三）
+          </button>
+          <div class="lesson-content" id="math-lesson3">
+            <div class="concept-card">
+              <h4>📚 近似值與製作棒形圖</h4>
+              <div class="concept-row">
+                <div class="concept-box">
+                  <h5>🔢 近似值</h5>
+                  <p>67 ≈ <strong>70</strong>（十位）</p>
+                  <p>234 ≈ <strong>200</strong>（百位）</p>
+                  <p>方便製作棒形圖</p>
+                </div>
+                <div class="concept-box">
+                  <h5>✏️ 製作步驟</h5>
+                  <p>1️⃣ 搵最大數值</p>
+                  <p>2️⃣ 選擇合適刻度</p>
+                  <p>3️⃣ 畫棒、寫標題</p>
+                  <p>4️⃣ 檢查一次</p>
+                </div>
+              </div>
+            </div>
+            <div class="quiz-section">
+              <button class="quiz-btn" onclick="startQuiz('math-lesson3')">
+                開始小測（棒形圖三：10MC + 10填充）
+              </button>
+            </div>
+          </div>
+        </div>
+        
       </div>
     </div>
     
@@ -1117,6 +1257,7 @@ function showSubject(subject) {
   event.target.classList.add('active');
   document.getElementById('chinese-section').style.display = subject === 'chinese' ? 'block' : 'none';
   document.getElementById('english-section').style.display = subject === 'english' ? 'block' : 'none';
+  document.getElementById('math-section').style.display = subject === 'math' ? 'block' : 'none';
 }
 
 function toggleLesson(btn, lessonId) {
